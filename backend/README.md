@@ -94,12 +94,22 @@ Writes answer with `{ changes, removed }`: the records that changed, in full, an
 - Admins cannot delete themselves or change their own role or status.
 - Deactivating a staff member signs them out on their next request.
 
-## Deploy
+## Deploy on Vercel
 
-The API needs a Node host; Vercel hosts only the frontend. Render (free web service) works:
+The backend is a second Vercel project from the same GitHub repo. `vercel.json` and `api/index.js` handle the setup.
 
-1. New Web Service from this GitHub repo, **Root Directory** `backend`, build `npm install`, start `npm start`.
-2. Environment: `MONGODB_URI`, `JWT_SECRET`, `CORS_ORIGIN=https://medipos-peach.vercel.app`, `TRUST_PROXY=1`.
-3. In Atlas *Network Access*, allow the host (or `0.0.0.0/0` with a strong database password).
-4. Seed once from your machine: `npm run seed` with the same `MONGODB_URI`.
-5. In Vercel, set `NEXT_PUBLIC_API_URL` to the Render URL and redeploy the frontend.
+1. Vercel → **Add New → Project** → import `Markeltree/medipos` again.
+2. **Root Directory**: `backend`. Framework preset: **Other**. Leave build settings as they are.
+3. **Environment Variables**:
+   - `MONGODB_URI`: Atlas connection string, with `/medipos` before the `?`
+   - `JWT_SECRET`: a new long random string (not the one in your local `.env`)
+   - `CORS_ORIGIN`: `https://medipos-peach.vercel.app`
+   - `TRUST_PROXY`: `1`
+   - `ALLOW_DEMO_RESET`: `false` for a real store, `true` for a demo
+4. Deploy, then open `https://<backend-project>.vercel.app/api/health`. It should show `{"ok":true}`.
+5. In Atlas **Network Access**, allow `0.0.0.0/0`. Vercel has no fixed IP addresses, so use a strong database password.
+6. In the **frontend** Vercel project, set `NEXT_PUBLIC_API_URL` to `https://<backend-project>.vercel.app` and redeploy it.
+
+Seeding and password changes run from your machine (`npm run seed`, `npm run set-password`) against the same `MONGODB_URI`.
+
+The login rate limit is kept in memory, so on Vercel each function instance counts attempts separately.

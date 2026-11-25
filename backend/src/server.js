@@ -1,10 +1,11 @@
 import mongoose from "mongoose";
 import { createApp } from "./app.js";
 import { loadConfig } from "./config.js";
+import { connectDb } from "./db.js";
 
 const config = loadConfig();
 
-await mongoose.connect(config.mongoUri);
+await connectDb(config.mongoUri);
 console.log(`Connected to MongoDB database "${mongoose.connection.name}"`);
 
 const server = createApp(config).listen(config.port, () => {
