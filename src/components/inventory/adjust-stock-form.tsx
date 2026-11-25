@@ -20,7 +20,7 @@ export function AdjustStockForm({ medicine, onDone }: { medicine: Medicine; onDo
   const errors = form.formState.errors;
   const type = form.watch("type");
 
-  const submit = (v: AdjustmentInput) => {
+  const submit = async (v: AdjustmentInput) => {
     const magnitude = Math.abs(v.quantity);
     let delta: number;
     if (v.type === "Stock In") delta = magnitude;
@@ -31,7 +31,7 @@ export function AdjustStockForm({ medicine, onDone }: { medicine: Medicine; onDo
       toast.error(`Stock cannot go below zero. ${medicine.name} has ${medicine.stock} on hand.`);
       return;
     }
-    adjustStock(medicine.id, delta, v.type, v.reason);
+    if (!(await adjustStock(medicine.id, delta, v.type, v.reason))) return;
     toast.success(`${v.type} recorded for ${medicine.name}`);
     form.reset({ type: v.type, quantity: 1, reason: "" });
     onDone?.();

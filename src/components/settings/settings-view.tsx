@@ -366,11 +366,10 @@ function AppearanceSection() {
         open={confirmReset}
         onOpenChange={setConfirmReset}
         title="Reset all demo data?"
-        description="Every medicine, customer, sale, purchase and staff record will return to the sample set. This cannot be undone."
+        description="Every medicine, customer, sale and purchase on the server returns to the sample set, for everyone. Staff logins are kept. This cannot be undone."
         confirmLabel="Reset data"
         onConfirm={() => {
-          resetDemoData();
-          toast.success("Demo data restored");
+          void resetDemoData().then((ok) => ok && toast.success("Demo data restored"));
         }}
       />
     </div>

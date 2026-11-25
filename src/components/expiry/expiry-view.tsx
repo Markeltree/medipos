@@ -163,8 +163,10 @@ export function ExpiryView() {
         confirmLabel="Write off"
         onConfirm={() => {
           if (!toWriteOff) return;
-          adjustStock(toWriteOff.id, -toWriteOff.stock, "Adjustment", `Expiry write-off · ${toWriteOff.batchNumber}`);
-          toast.success(`${toWriteOff.name} batch written off`);
+          const { id, name, stock, batchNumber } = toWriteOff;
+          void adjustStock(id, -stock, "Adjustment", `Expiry write-off · ${batchNumber}`).then(
+            (ok) => ok && toast.success(`${name} batch written off`),
+          );
         }}
       />
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Toaster } from "sonner";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
@@ -10,12 +10,15 @@ import { TopBar } from "@/components/layout/top-bar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/primitives";
+import { Button } from "@/components/ui/button";
 import { useUiStore } from "@/store/ui-store";
+import { useAuthStore } from "@/store/auth-store";
+import { useDataStore } from "@/store/data-store";
 
 /**
- * App frame for every dashboard route. Persisted stores are read from
- * localStorage on the client only, so we render a skeleton until mounted
- * to avoid server/client markup mismatches.
+ * App frame for every dashboard route. The session is read from localStorage on
+ * the client only, so we render a skeleton until mounted (avoiding server/client
+ * markup mismatches) and until the pharmacy data has loaded from the API.
  */
 const noopSubscribe = () => () => {};
 
@@ -30,7 +33,12 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const mobileOpen = useUiStore((s) => s.mobileNavOpen);
   const setMobileOpen = useUiStore((s) => s.setMobileNavOpen);
   const pathname = usePathname();
+  const router = useRouter();
   const reduce = useReducedMotion();
+  const token = useAuthStore((s) => s.token);
+  const status = useDataStore((s) => s.status);
+  const loadError = useDataStore((s) => s.error);
+  const load = useDataStore((s) => s.load);
 
   React.useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -40,7 +48,26 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     setMobileOpen(false);
   }, [pathname, setMobileOpen]);
 
-  if (!ready) {
+  // Signed out: go to the login page. Signed in: fetch the pharmacy data once.
+  React.useEffect(() => {
+    if (!ready) return;
+    if (!token) router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+    else if (status === "idle") void load();
+  }, [ready, token, status, load, router, pathname]);
+
+  if (ready && token && status === "error") {
+    return (
+      <div className="flex min-h-dvh items-center justify-center p-6">
+        <div className="max-w-sm text-center">
+          <p className="text-base font-semibold">Could not load your pharmacy data</p>
+          <p className="mt-1 text-sm text-muted">{loadError}</p>
+          <Button className="mt-4" onClick={() => void load()}>Try again</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!ready || !token || status !== "ready") {
     return (
       <div className="flex min-h-dvh">
         <div className="hidden w-62 border-r border-border p-4 md:block">

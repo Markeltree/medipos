@@ -15,7 +15,7 @@ import { StaffStatusBadge } from "@/components/shared/status-badge";
 import { DataTable } from "@/components/shared/data-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useDataStore } from "@/store/data-store";
-import { staffSchema, type StaffInput } from "@/lib/validators";
+import { staffFormSchema, type StaffFormInput } from "@/lib/validators";
 import { formatDate, formatNumber } from "@/lib/utils";
 import type { StaffMember, StaffRole } from "@/types";
 
@@ -185,24 +185,30 @@ export function StaffView() {
 function StaffFormDialog({ open, onOpenChange, member }: { open: boolean; onOpenChange: (v: boolean) => void; member: StaffMember | null }) {
   const addStaff = useDataStore((s) => s.addStaff);
   const updateStaff = useDataStore((s) => s.updateStaff);
-  const blank: StaffInput = { name: "", email: "", phone: "", role: "Cashier", status: "Active", joiningDate: new Date().toISOString().slice(0, 10) };
-  const form = useForm<StaffInput>({ resolver: zodResolver(staffSchema), defaultValues: blank });
+  const blank: StaffFormInput = { name: "", email: "", phone: "", role: "Cashier", status: "Active", joiningDate: new Date().toISOString().slice(0, 10), password: "" };
+  const form = useForm<StaffFormInput>({ resolver: zodResolver(staffFormSchema), defaultValues: blank });
   const errors = form.formState.errors;
   const role = form.watch("role");
 
   React.useEffect(() => {
     if (open) {
-      form.reset(member ? { name: member.name, email: member.email, phone: member.phone, role: member.role, status: member.status, joiningDate: member.joiningDate } : blank);
+      form.reset(member ? { name: member.name, email: member.email, phone: member.phone, role: member.role, status: member.status, joiningDate: member.joiningDate, password: "" } : blank);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, member]);
 
-  const submit = (v: StaffInput) => {
+  const submit = (v: StaffFormInput) => {
+    const { password, ...profile } = v;
     if (member) {
-      updateStaff(member.id, v);
+      // A blank password leaves the current one unchanged.
+      void updateStaff(member.id, password ? { ...profile, password } : profile);
       toast.success("Staff profile updated");
     } else {
-      addStaff(v);
+      if (!password) {
+        form.setError("password", { message: "Set a password for the new account" });
+        return;
+      }
+      void addStaff({ ...profile, password });
       toast.success(`${v.name} added to the team`);
     }
     onOpenChange(false);
@@ -240,6 +246,13 @@ function StaffFormDialog({ open, onOpenChange, member }: { open: boolean; onOpen
             </Field>
             <Field label="Joining date" error={errors.joiningDate?.message}>
               <Input type="date" aria-invalid={!!errors.joiningDate} {...form.register("joiningDate")} />
+            </Field>
+            <Field
+              label={member ? "New password" : "Password"}
+              hint={member ? "Leave blank to keep the current password" : "At least 8 characters. Share it with the staff member."}
+              error={errors.password?.message}
+            >
+              <Input type="password" autoComplete="new-password" aria-invalid={!!errors.password} {...form.register("password")} />
             </Field>
           </DialogBody>
           <DialogFooter>

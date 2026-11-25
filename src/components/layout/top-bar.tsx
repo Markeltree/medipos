@@ -25,6 +25,7 @@ import {
   Pill,
 } from "lucide-react";
 import { toast } from "sonner";
+import { initials, useAuthStore } from "@/store/auth-store";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/primitives";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -194,17 +195,19 @@ function NotificationsMenu() {
 
 function ProfileMenu() {
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button type="button" className="ml-1 flex size-8 cursor-pointer items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent ring-offset-2 focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:outline-none" aria-label="Account menu">
-          MC
+          {initials(user?.name ?? "")}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
         <DropdownMenuLabel>
-          <span className="block text-[13px] font-medium text-foreground">Michael Carter</span>
-          michael.carter@medipos.pk
+          <span className="block text-[13px] font-medium text-foreground">{user?.name}</span>
+          {user?.email}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => router.push("/staff")}>
@@ -214,7 +217,14 @@ function ProfileMenu() {
           <Settings /> Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem destructive onSelect={() => toast.success("Signed out (demo mode)")}>
+        <DropdownMenuItem
+          destructive
+          onSelect={() => {
+            logout();
+            toast.success("Signed out");
+            router.replace("/login");
+          }}
+        >
           <LogOut /> Log out
         </DropdownMenuItem>
       </DropdownMenuContent>

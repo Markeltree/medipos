@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { navGroups } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/store/ui-store";
+import { initials, useAuthStore } from "@/store/auth-store";
 import { Tooltip } from "@/components/ui/tooltip";
 import { MediPosLogo } from "@/components/layout/logo";
 
@@ -18,6 +19,8 @@ export function AppSidebar({ variant = "desktop", onNavigate }: { variant?: "des
   const toggle = useUiStore((s) => s.toggleSidebar);
   const isMobile = variant === "mobile";
   const isCollapsed = !isMobile && collapsed;
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
 
   return (
     <motion.aside
@@ -101,20 +104,21 @@ export function AppSidebar({ variant = "desktop", onNavigate }: { variant?: "des
 
         <div className={cn("flex items-center gap-2.5 rounded-md p-1.5", isCollapsed && "justify-center")}>
           <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[12px] font-semibold text-accent">
-            MC
+            {initials(user?.name ?? "")}
           </div>
           {!isCollapsed && (
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-medium">Michael Carter</p>
-              <p className="truncate text-xs text-muted">Admin · Main counter</p>
+              <p className="truncate text-[13px] font-medium">{user?.name}</p>
+              <p className="truncate text-xs text-muted">{user?.role}</p>
             </div>
           )}
           {!isCollapsed && (
             <button
               type="button"
               onClick={() => {
-                toast.success("Signed out (demo mode)");
-                router.push("/dashboard");
+                logout();
+                toast.success("Signed out");
+                router.replace("/login");
               }}
               className="inline-flex size-8 cursor-pointer items-center justify-center rounded-md text-muted hover:bg-danger-soft hover:text-danger"
               aria-label="Log out"
@@ -127,7 +131,11 @@ export function AppSidebar({ variant = "desktop", onNavigate }: { variant?: "des
           <Tooltip content="Log out" side="right">
             <button
               type="button"
-              onClick={() => toast.success("Signed out (demo mode)")}
+              onClick={() => {
+                logout();
+                toast.success("Signed out");
+                router.replace("/login");
+              }}
               className="mt-1 flex h-8 w-full cursor-pointer items-center justify-center rounded-md text-muted hover:bg-danger-soft hover:text-danger"
               aria-label="Log out"
             >

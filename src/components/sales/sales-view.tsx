@@ -231,8 +231,8 @@ export function SalesView() {
         confirmLabel="Refund"
         onConfirm={() => {
           if (refunding) {
-            refundSale(refunding.id);
-            toast.success(`Refund processed for ${refunding.id}`);
+            const { id } = refunding;
+            void refundSale(id).then((ok) => ok && toast.success(`Refund processed for ${id}`));
           }
         }}
       />

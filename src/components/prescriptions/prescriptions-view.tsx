@@ -195,8 +195,7 @@ function PrescriptionDetail({ prescriptionId, onClose }: { prescriptionId: strin
               <Button
                 disabled={!allChecked}
                 onClick={() => {
-                  updateStatus(rx.id, "Verified", notes);
-                  toast.success("Prescription verified");
+                  void updateStatus(rx.id, "Verified", notes).then((ok) => ok && toast.success("Prescription verified"));
                 }}
               >
                 <CheckCircle2 /> Verify
@@ -208,8 +207,7 @@ function PrescriptionDetail({ prescriptionId, onClose }: { prescriptionId: strin
                     toast.error("Add a reason in the notes before rejecting");
                     return;
                   }
-                  updateStatus(rx.id, "Rejected", notes);
-                  toast.success("Prescription rejected");
+                  void updateStatus(rx.id, "Rejected", notes).then((ok) => ok && toast.success("Prescription rejected"));
                 }}
               >
                 <ShieldX /> Reject
@@ -220,8 +218,7 @@ function PrescriptionDetail({ prescriptionId, onClose }: { prescriptionId: strin
             <Button
               disabled={!stockOk}
               onClick={() => {
-                updateStatus(rx.id, "Dispensed", notes);
-                toast.success("Medicines dispensed and stock updated");
+                void updateStatus(rx.id, "Dispensed", notes).then((ok) => ok && toast.success("Medicines dispensed and stock updated"));
               }}
             >
               <PackageCheck /> Mark dispensed

@@ -12,6 +12,7 @@ import { Receipt } from "@/components/sales/receipt";
 import { paymentSchema } from "@/lib/validators";
 import { cn, formatPKR, type CartTotals } from "@/lib/utils";
 import { useDataStore } from "@/store/data-store";
+import { usePosStore } from "@/store/pos-store";
 import type { PaymentMethod, Sale, SaleItem } from "@/types";
 
 const METHODS: { value: PaymentMethod; icon: React.ReactNode; hint: string }[] = [
@@ -40,6 +41,7 @@ export function PaymentDialog({ open, onOpenChange, items, totals, customer, onC
   const addSale = useDataStore((s) => s.addSale);
   const profile = useDataStore((s) => s.profile);
   const medicines = useDataStore((s) => s.medicines);
+  const orderDiscount = usePosStore((s) => s.orderDiscount);
   const [receipt, setReceipt] = React.useState<Sale | null>(null);
 
   // The schema depends on the total; read it through a ref so the resolver is always current.
@@ -70,7 +72,7 @@ export function PaymentDialog({ open, onOpenChange, items, totals, customer, onC
     form.setValue("amountReceived", m === "Cash" ? Math.ceil(totals.total / 100) * 100 : totals.total, { shouldValidate: true });
   };
 
-  const onSubmit = (values: PaymentFormValues) => {
+  const onSubmit = async (values: PaymentFormValues) => {
     // Stock must still cover the cart: other tills may have sold stock meanwhile.
     const short = items.find((i) => {
       const med = medicines.find((m) => m.id === i.medicineId);
@@ -80,24 +82,20 @@ export function PaymentDialog({ open, onOpenChange, items, totals, customer, onC
       toast.error(`Not enough stock for ${short.name}. Reduce the quantity and try again.`);
       return;
     }
-    const id = addSale({
-      date: new Date().toISOString(),
+    // The server re-prices the sale from its own records; it answers with the saved sale.
+    const saved = await addSale({
       customerId: customer?.id ?? null,
-      customerName: customer?.name ?? "Walk-in Customer",
-      items,
-      subtotal: totals.subtotal,
-      discount: totals.lineDiscount + totals.orderDiscount,
-      tax: totals.tax,
-      total: totals.total,
+      items: items.map((i) => ({ medicineId: i.medicineId, quantity: i.quantity, discount: i.discount })),
+      orderDiscount,
       paymentMethod: values.method,
-      amountReceived: values.method === "Cash" ? values.amountReceived : totals.total,
-      change: values.method === "Cash" ? Math.max(0, values.amountReceived - totals.total) : 0,
-      cashier: "Michael Carter",
-      paymentStatus: "Paid",
+      amountReceived: values.method === "Cash" ? values.amountReceived : undefined,
     });
-    const saved = useDataStore.getState().sales.find((s) => s.id === id);
-    if (saved) setReceipt(saved);
-    toast.success(`Payment confirmed · ${id}`);
+    if (!saved) return;
+    if (saved.total !== totals.total) {
+      toast.warning(`Prices changed on the server. Charged ${formatPKR(saved.total)}.`);
+    }
+    setReceipt(saved);
+    toast.success(`Payment confirmed · ${saved.id}`);
   };
 
   const errors = form.formState.errors;

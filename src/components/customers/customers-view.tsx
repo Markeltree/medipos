@@ -174,7 +174,7 @@ export function CustomersView() {
 function CustomerProfile({ customerId, onEdit, onClose }: { customerId: string; onEdit: () => void; onClose: () => void }) {
   const customer = useDataStore((s) => s.customers.find((c) => c.id === customerId));
   const sales = useDataStore((s) => s.sales);
-  const updateCustomer = useDataStore((s) => s.updateCustomer);
+  const redeemPoints = useDataStore((s) => s.redeemPoints);
   if (!customer) return <Skeleton className="h-40" />;
 
   const history = sales.filter((s) => s.customerId === customer.id).slice(0, 25);
@@ -217,8 +217,9 @@ function CustomerProfile({ customerId, onEdit, onClose }: { customerId: string; 
             className="mt-3 w-full"
             disabled={!canRedeem}
             onClick={() => {
-              updateCustomer(customer.id, { loyaltyPoints: customer.loyaltyPoints - REDEEM_POINTS });
-              toast.success(`${formatPKR(REDEEM_VALUE)} voucher redeemed for ${customer.name}`);
+              void redeemPoints(customer.id, REDEEM_POINTS).then(
+                (ok) => ok && toast.success(`${formatPKR(REDEEM_VALUE)} voucher redeemed for ${customer.name}`),
+              );
             }}
           >
             <Gift /> {canRedeem ? "Redeem voucher" : `${REDEEM_POINTS - customer.loyaltyPoints} points to go`}

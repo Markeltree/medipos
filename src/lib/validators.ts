@@ -72,6 +72,12 @@ export const staffSchema = z.object({
 });
 export type StaffInput = z.infer<typeof staffSchema>;
 
+/** Staff form: password is required when creating (checked on submit) and optional when editing. */
+export const staffFormSchema = staffSchema.extend({
+  password: z.string().refine((v) => v === "" || (v.length >= 8 && v.length <= 128), "Use 8 to 128 characters"),
+});
+export type StaffFormInput = z.infer<typeof staffFormSchema>;
+
 export const purchaseSchema = z
   .object({
     supplierId: z.string().min(1, "Choose a supplier"),

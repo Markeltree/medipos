@@ -142,7 +142,8 @@ function PurchaseDetail({ purchaseId, onClose }: { purchaseId: string; onClose: 
   const supplier = suppliers.find((s) => s.id === purchase.supplierId)?.name ?? "—";
   const canReceive = ["Pending", "Partially Received"].includes(purchase.status);
   const canSubmit = purchase.status === "Draft";
-  const canCancel = !["Received", "Cancelled"].includes(purchase.status);
+  // Once stock has arrived the order can no longer be cancelled (the server enforces this too).
+  const canCancel = purchase.status === "Draft" || purchase.status === "Pending";
 
   return (
     <>
@@ -228,9 +229,11 @@ function PurchaseDetail({ purchaseId, onClose }: { purchaseId: string; onClose: 
                 purchase.items.forEach((it) => {
                   payload[it.medicineId] = receiving[it.medicineId] ?? it.quantity - it.receivedQuantity;
                 });
-                receivePurchase(purchase.id, payload);
-                setReceiving({});
-                toast.success("Stock received and inventory updated");
+                void receivePurchase(purchase.id, payload).then((ok) => {
+                  if (!ok) return;
+                  setReceiving({});
+                  toast.success("Stock received and inventory updated");
+                });
               }}
             >
               <PackageCheck /> Confirm receipt
@@ -241,12 +244,12 @@ function PurchaseDetail({ purchaseId, onClose }: { purchaseId: string; onClose: 
       <DialogFooter className="sm:justify-between">
         <div className="flex gap-2">
           {canSubmit && (
-            <Button variant="outline" onClick={() => { updatePurchaseStatus(purchase.id, "Pending"); toast.success("Order sent to supplier"); }}>
+            <Button variant="outline" onClick={() => void updatePurchaseStatus(purchase.id, "Pending").then((ok) => ok && toast.success("Order sent to supplier"))}>
               <Send /> Send order
             </Button>
           )}
           {canCancel && (
-            <Button variant="outline" onClick={() => { updatePurchaseStatus(purchase.id, "Cancelled"); toast.success("Order cancelled"); }}>
+            <Button variant="outline" onClick={() => void updatePurchaseStatus(purchase.id, "Cancelled").then((ok) => ok && toast.success("Order cancelled"))}>
               <XCircle /> Cancel order
             </Button>
           )}
@@ -297,8 +300,8 @@ function PurchaseFormDialog({ open, onOpenChange }: { open: boolean; onOpenChang
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const submit = (v: PurchaseInput) => {
-    addPurchase({
+  const submit = async (v: PurchaseInput) => {
+    const ok = await addPurchase({
       supplierId: v.supplierId,
       invoiceNumber: v.invoiceNumber || undefined,
       purchaseDate: v.purchaseDate,
@@ -306,9 +309,9 @@ function PurchaseFormDialog({ open, onOpenChange }: { open: boolean; onOpenChang
       status: v.status,
       paymentStatus: v.paymentStatus,
       notes: v.notes,
-      items: v.items.map((it) => ({ medicineId: it.medicineId, quantity: it.quantity, unitPrice: it.unitPrice, receivedQuantity: 0 })),
-      total: v.items.reduce((s, it) => s + it.quantity * it.unitPrice, 0),
+      items: v.items.map((it) => ({ medicineId: it.medicineId, quantity: it.quantity, unitPrice: it.unitPrice })),
     });
+    if (!ok) return;
     toast.success(v.status === "Draft" ? "Draft saved" : "Purchase order created");
     onOpenChange(false);
   };
