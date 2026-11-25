@@ -198,13 +198,13 @@ function ProfileMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button type="button" className="ml-1 flex size-8 cursor-pointer items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent ring-offset-2 focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:outline-none" aria-label="Account menu">
-          SM
+          MC
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
         <DropdownMenuLabel>
-          <span className="block text-[13px] font-medium text-foreground">Shahid Mehmood</span>
-          shahid@medipos.pk
+          <span className="block text-[13px] font-medium text-foreground">Michael Carter</span>
+          michael.carter@medipos.pk
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => router.push("/staff")}>

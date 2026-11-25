@@ -174,7 +174,7 @@ export const prescriptions: Prescription[] = [
 ];
 
 export const staff: StaffMember[] = [
-  { id: "stf-01", name: "Shahid Mehmood", email: "shahid@medipos.pk", phone: "0300-1112233", role: "Admin", status: "Active", joiningDate: "2021-03-01" },
+  { id: "stf-01", name: "Michael Carter", email: "michael.carter@medipos.pk", phone: "0300-1112233", role: "Admin", status: "Active", joiningDate: "2021-03-01" },
   { id: "stf-02", name: "Dr. Rabia Anwar", email: "rabia.anwar@medipos.pk", phone: "0321-2223344", role: "Pharmacist", status: "Active", joiningDate: "2022-07-15" },
   { id: "stf-03", name: "Kashif Ali", email: "kashif.ali@medipos.pk", phone: "0333-3334455", role: "Cashier", status: "Active", joiningDate: "2023-01-10" },
   { id: "stf-04", name: "Bushra Jabeen", email: "bushra.j@medipos.pk", phone: "0312-4445566", role: "Cashier", status: "On Leave", joiningDate: "2023-09-01" },
@@ -236,7 +236,7 @@ function rng(seed: number) {
 export function generateSales(): Sale[] {
   const rand = rng(20261125);
   const methods: PaymentMethod[] = ["Cash", "Cash", "Card", "JazzCash", "EasyPaisa", "Bank Transfer"];
-  const cashiers = ["Kashif Ali", "Bushra Jabeen", "Shahid Mehmood"];
+  const cashiers = ["Kashif Ali", "Bushra Jabeen", "Michael Carter"];
   const sales: Sale[] = [];
   const today = new Date("2026-11-25T20:00:00");
   let n = 0;

@@ -101,11 +101,11 @@ export function AppSidebar({ variant = "desktop", onNavigate }: { variant?: "des
 
         <div className={cn("flex items-center gap-2.5 rounded-md p-1.5", isCollapsed && "justify-center")}>
           <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[12px] font-semibold text-accent">
-            SM
+            MC
           </div>
           {!isCollapsed && (
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-medium">Shahid Mehmood</p>
+              <p className="truncate text-[13px] font-medium">Michael Carter</p>
               <p className="truncate text-xs text-muted">Admin · Main counter</p>
             </div>
           )}

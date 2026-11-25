@@ -124,7 +124,7 @@ export const useDataStore = create<DataState>()(
         set((s) => ({
           medicines: s.medicines.map((m) => (m.id === medicineId ? { ...m, stock: newStock } : m)),
           movements: [
-            { id: makeId("mv"), medicineId, type, quantity: applied, reference, date: new Date().toISOString(), user: "Shahid Mehmood" },
+            { id: makeId("mv"), medicineId, type, quantity: applied, reference, date: new Date().toISOString(), user: "Michael Carter" },
             ...s.movements,
           ],
         }));
@@ -277,7 +277,7 @@ export const useDataStore = create<DataState>()(
     }),
     {
       name: "medipos-data",
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => localStorage),
     },
   ),

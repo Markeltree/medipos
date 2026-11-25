@@ -92,7 +92,7 @@ export function PaymentDialog({ open, onOpenChange, items, totals, customer, onC
       paymentMethod: values.method,
       amountReceived: values.method === "Cash" ? values.amountReceived : totals.total,
       change: values.method === "Cash" ? Math.max(0, values.amountReceived - totals.total) : 0,
-      cashier: "Shahid Mehmood",
+      cashier: "Michael Carter",
       paymentStatus: "Paid",
     });
     const saved = useDataStore.getState().sales.find((s) => s.id === id);
